@@ -117,37 +117,47 @@ op.wipe()
 # Run unknown number of analyses
 # =============================================================================
 
-
+# Redefine areas
 A1 = 10.*inches**2
 A2 = 5*inches**2
 
-targetDisp = 0.001
+# Define target values
+targetDisp = 0.001*m
 growthRate = 1.01
+tol = 10**-6
 
+# Define the analysis name
 AnalysisName = "Optimal_MOE_Pushover_"
 
 # Run an inital Analysis 
 GetSections(E)
-GetModel(A1Optimal, A2Optimal)
+GetModel(A1, A2)
 GetRecordersPushover(AnalysisName)
-RunPushoverAnalysis(Px, Py)
-
+RunGravityAnalysis(Py)
 
 # Find the optimal E for our analysis
 ii = 0
-while ( targetDisp < abs(op.nodeDisp(4,1)) ):
+while ( abs(targetDisp - op.nodeDisp(4,1)) > tol ):
     
-    E = E*growthRate
+    print(op.nodeDisp(4,1))
+    
+    # Choose a new E
+    if op.nodeDisp(4,1) < targetDisp:
+        E = E/growthRate
+    else:
+        E = E*growthRate
+    
+    # Run a new analysis
     op.wipe()
     GetSections(E)
     GetModel(A1, A2)
     RunGravityAnalysis(Py)
+    
+    
 
     ii +=1
 
 op.wipe()  
-
-
 
 # Run analysis on Optimal Parameter
 GetSections(E)
